@@ -1,0 +1,66 @@
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index 03c8d74..ff618b5 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -2562,6 +2562,11 @@ static int proc_pid_personality(struct seq_file *m, struct pid_namespace *ns,
+ 	return err;
+ }
+ 
++static int proc_pid_ctx(struct task_struct* task,char *buffer)
++{
++	return sprintf(buffer,"%d",task->ctx_count);
++}
++
+ /*
+  * Thread groups
+  */
+@@ -2661,6 +2666,8 @@ static const struct pid_entry tgid_base_stuff[] = {
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	REG("timers",	  S_IRUGO, proc_timers_operations),
+ #endif
++	/* add for Project 2 ctx */
++	INF("ctx",	S_IRUGO, proc_pid_ctx),
+ };
+ 
+ static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 53f97eb..7c97c29 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1454,6 +1454,8 @@ struct task_struct {
+ 	unsigned int	sequential_io;
+ 	unsigned int	sequential_io_avg;
+ #endif
++	/* add for Project 2 ctx */
++	int ctx_count;
+ };
+ 
+ /* Future-safe accessor for struct task_struct's cpus_allowed. */
+diff --git a/kernel/fork.c b/kernel/fork.c
+index dfa736c..f17d11c 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1222,6 +1222,9 @@ static struct task_struct *copy_process(unsigned long clone_flags,
+ 	if (!try_module_get(task_thread_info(p)->exec_domain->module))
+ 		goto bad_fork_cleanup_count;
+ 
++	/* add for Project 2 ctx */
++	p->ctx_count = 0;
++
+ 	p->did_exec = 0;
+ 	delayacct_tsk_init(p);	/* Must remain after dup_task_struct() */
+ 	copy_flags(clone_flags, p);
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index c677510..64613b6 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -2109,6 +2109,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
+ 
+ 	prepare_task_switch(rq, prev, next);
+ 
++	/* add for Project 2 ctx */
++	next->ctx_count++;
++
+ 	mm = next->mm;
+ 	oldmm = prev->active_mm;
+ 	/*

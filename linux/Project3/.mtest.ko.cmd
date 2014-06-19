@@ -1,0 +1,1 @@
+cmd_/mnt/ubuntu/zzs/development/Project3/mtest.ko := ld -r -m elf_i386 -T /usr/src/kernels/3.11.4-101.fc18.i686/scripts/module-common.lds --build-id  -o /mnt/ubuntu/zzs/development/Project3/mtest.ko /mnt/ubuntu/zzs/development/Project3/mtest.o /mnt/ubuntu/zzs/development/Project3/mtest.mod.o
